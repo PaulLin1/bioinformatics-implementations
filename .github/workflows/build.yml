@@ -10,21 +10,23 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Install build dependencies
-        run: sudo apt-get update && sudo apt-get install -y build-essential cmake
+      - name: Install dependencies (including googletest)
+        run: |
+          brew update
+          brew install googletest
 
-      - name: Build project
+      - name: Configure and build
         run: |
           mkdir -p build
           cd build
-          cmake .. -DCMAKE_CXX_STANDARD=17
-          cmake --build .
+          cmake .. -DCMAKE_PREFIX_PATH="$(brew --prefix)" -DCMAKE_CXX_STANDARD=17
+          make
 
       - name: Run tests
         run: |
