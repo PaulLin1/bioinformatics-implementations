@@ -43,49 +43,70 @@ create_scoring_matrix(std::string seq1, std::string seq2, int match_score,
 std::pair<std::string, std::string>
 traceback(const std::string &seq1, const std::string &seq2,
           const std::vector<std::vector<int>> &scoring_matrix,
-          const std::pair<int, int> &best_index, int max_value, int match_score,
-          int mismatch_score, int gap_penalty) {
+          const std::pair<int, int> &best_index, int max_value,
+          int match_score, int mismatch_score, int gap_penalty) {
+
   std::string seq1_sub;
   std::string seq2_sub;
 
   int current_score = max_value;
-  std::pair<int, int> current_index = best_index;
+  int i = best_index.first;
+  int j = best_index.second;
 
-  do {
-    seq1_sub += seq1[current_index.first - 1];
-    seq2_sub += seq2[current_index.second - 1];
+  while (current_score > 0) {
+    // Indices for neighbors
+    int diag_i = i - 1;
+    int diag_j = j - 1;
+    int top_i = i;
+    int top_j = j - 1;
+    int left_i = i - 1;
+    int left_j = j;
 
-    std::pair<int, int> diag_index = {current_index.first - 1,
-                                      current_index.second - 1};
-    std::pair<int, int> top_index = {current_index.first,
-                                     current_index.second - 1};
-    std::pair<int, int> left_index = {current_index.first - 1,
-                                      current_index.second};
+    char a = seq1[i - 1];
+    char b = seq2[j - 1];
 
-    int diag_score = scoring_matrix[diag_index.first][diag_index.second];
-    int top_score = scoring_matrix[top_index.first][top_index.second];
-    int left_score = scoring_matrix[left_index.first][left_index.second];
+    int diag_score = (diag_i >= 0 && diag_j >= 0) ? scoring_matrix[diag_i][diag_j] : 0;
+    int top_score = (top_j >= 0) ? scoring_matrix[top_i][top_j] : 0;
+    int left_score = (left_i >= 0) ? scoring_matrix[left_i][left_j] : 0;
 
-    if (current_score == diag_score + match_score ||
-        current_score == diag_score + mismatch_score) {
+    int expected_diag_score = diag_score + ((a == b) ? match_score : mismatch_score);
+    int expected_top_score = top_score + gap_penalty;
+    int expected_left_score = left_score + gap_penalty;
+
+    if (current_score == expected_diag_score) {
+      seq1_sub += a;
+      seq2_sub += b;
+      i = diag_i;
+      j = diag_j;
       current_score = diag_score;
-      current_index = diag_index;
 
-    } else if (current_score == top_score + gap_penalty) {
-      current_score = top_score;
-      current_index = top_index;
-    } else if (current_score == left_score + gap_penalty) {
+    } else if (current_score == expected_left_score) {
+      seq1_sub += a;
+      seq2_sub += '-';
+      i = left_i;
+      j = left_j;
       current_score = left_score;
-      current_index = left_index;
+
+    } else if (current_score == expected_top_score) {
+      seq1_sub += '-';
+      seq2_sub += b;
+      i = top_i;
+      j = top_j;
+      current_score = top_score;
+
+    } else {
+      // No valid move found, break to avoid infinite loop
+      break;
     }
-  } while (current_score != 0);
+  }
 
   // Reverse strings because be backtraced
   std::reverse(seq1_sub.begin(), seq1_sub.end());
   std::reverse(seq2_sub.begin(), seq2_sub.end());
 
-  return std::make_pair(seq1_sub, seq2_sub);
+  return {seq1_sub, seq2_sub};
 }
+
 
 SWResult smith_waterman(const std::string &seq1, const std::string &seq2,
                         int match_score, int mismatch_score, int gap_penalty) {

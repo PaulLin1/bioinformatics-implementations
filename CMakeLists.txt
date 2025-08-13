@@ -8,8 +8,15 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(GTest REQUIRED)
 
 # Library target
-add_library(smith_waterman smith_waterman/smith_waterman.cpp)
-target_include_directories(smith_waterman PUBLIC ${CMAKE_SOURCE_DIR}/smith_waterman)
+add_library(smith_waterman
+    smith_waterman/smith_waterman.cpp
+    utils/utils.cpp
+)
+
+target_include_directories(smith_waterman PUBLIC
+    ${CMAKE_SOURCE_DIR}/smith_waterman
+    ${CMAKE_SOURCE_DIR}/utils
+)
 
 # Test target
 add_executable(smith_waterman_test tests/smith_waterman_test.cpp)
