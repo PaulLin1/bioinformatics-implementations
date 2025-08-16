@@ -14,7 +14,7 @@ Regular Tests: 1.0s
 NCBI RefSeq full organism collection: too large to profile
 
 ## Naive CUDA Implementation
-The creation of the scoring matrix is 
+The creation of the scoring matrix is parallelized.
 
 ### Profiling Info with Perf on H200
 Regular Tests: 1.0s

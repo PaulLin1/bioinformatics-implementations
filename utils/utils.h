@@ -3,6 +3,6 @@
 
 #include <vector>
 
-void print_matrix(const std::vector<std::vector<int>>& matrix);
+void print_matrix(const std::vector<std::vector<int>> &matrix);
 
 #endif // UTILS_H

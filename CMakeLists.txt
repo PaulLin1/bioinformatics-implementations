@@ -6,46 +6,50 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Option to choose CUDA or CPU. Default CPU
 option(USE_CUDA "Use CUDA implementation" OFF)
-if(USE_CUDA)
-    enable_language(CUDA)
-endif()
 
-# List of algorithms
-set(ALGORITHMS
-    smith_waterman
-    # needleman_wunsch
-    # edit_distance
+# -----------------------------------------------------------------
+# Smith-Waterman sources
+set(ALG smith_waterman)
+
+set(SRC
+    algorithms/${ALG}/smith_waterman.cpp
+    algorithms/${ALG}/cpu_sw_create_scoring_matrix.cpp
 )
 
-foreach(ALG ${ALGORITHMS})
-    if(USE_CUDA)
-        set(SRC algorithm/${ALG}/cuda_${ALG}.cu)
-    else()
-        set(SRC algorithm/${ALG}/naive_${ALG}.cpp)
-    endif()
+if(USE_CUDA)
+    # Modern CMake way to find CUDA
+    find_package(CUDAToolkit REQUIRED)
+    list(APPEND SRC algorithms/${ALG}/cuda_sw_create_scoring_matrix.cu)
+endif()
 
-    # Main executable for each algorithm
-    add_executable(${ALG}_program main.cpp ${SRC})
+# Library for Smith-Waterman
+add_library(${ALG}_lib ${SRC})
 
-    # Library for each algorithm (optional)
-    add_library(${ALG}_lib
-        algorithm/${ALG}/${ALG}.cpp
-        utils/utils.cpp
-    )
-    target_include_directories(${ALG}_lib PUBLIC
-        ${CMAKE_SOURCE_DIR}/algorithm/${ALG}
-        ${CMAKE_SOURCE_DIR}/utils
-    )
+target_include_directories(${ALG}_lib PUBLIC
+    ${CMAKE_SOURCE_DIR}/algorithms/${ALG}
+)
 
-    target_link_libraries(${ALG}_program PRIVATE ${ALG}_lib)
-endforeach()
+# Link CUDA runtime if needed
+if(USE_CUDA)
+    target_link_libraries(${ALG}_lib PRIVATE CUDA::cudart)
+    target_compile_definitions(${ALG}_lib PUBLIC USE_CUDA=1)
+endif()
 
+# -----------------------------------------------------------------
 # GoogleTest
-# find_package(GTest REQUIRED)
-# add_executable(algorithm_tests tests/algorithm_tests.cpp)
-# foreach(ALG ${ALGORITHMS})
-#    target_link_libraries(algorithm_tests PRIVATE ${ALG}_lib)
-# endforeach()
+find_package(GTest REQUIRED)
+
+set(TEST_SRC
+    tests/cpu_sw_test.cpp
+)
+
+if(USE_CUDA)
+    list(APPEND TEST_SRC tests/cuda_sw_test.cpp)
+endif()
+
+add_executable(algorithm_tests ${TEST_SRC})
+
+target_link_libraries(algorithm_tests PRIVATE ${ALG}_lib GTest::GTest GTest::Main)
 
 enable_testing()
 add_test(NAME AlgorithmTests COMMAND algorithm_tests)

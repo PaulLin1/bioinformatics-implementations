@@ -6,9 +6,9 @@
 
 /// Holds the result of a Smith-Waterman alignment
 struct SWResult {
-  int score;                ///< Alignment score
-  std::string aligned_seq1; ///< Aligned version of the first sequence
-  std::string aligned_seq2; ///< Aligned version of the second sequence
+	int score;                ///< Alignment score
+	std::string aligned_seq1; ///< Aligned version of the first sequence
+	std::string aligned_seq2; ///< Aligned version of the second sequence
 };
 
 /**

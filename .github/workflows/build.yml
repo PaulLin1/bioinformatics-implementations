@@ -1,34 +1,38 @@
-# name: Build and Test C++17
+name: Build, Format, Test
 
-# on:
-#   push:
-#     branches:
-#       - main
-#   pull_request:
-#     branches:
-#       - main
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
-# jobs:
-#   build:
-#     runs-on: macos-latest
+jobs:
+  build:
+    runs-on: macos-latest
 
-#     steps:
-#       - name: Checkout repo
-#         uses: actions/checkout@v3
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
-#       - name: Install dependencies (including googletest)
-#         run: |
-#           brew update
-#           brew install googletest
+      - name: Format with clang-Format
+        run: |
+          find . -type f \( -name "*.cpp" -o -name "*.h" -o -name "*.cu" \) -exec clang-format -i {} +
+          
+      - name: Install dependencies (including googletest)
+        run: |
+          brew update
+          brew install googletest
 
-#       - name: Configure and build
-#         run: |
-#           mkdir -p build
-#           cd build
-#           cmake .. -DCMAKE_PREFIX_PATH="$(brew --prefix)" -DCMAKE_CXX_STANDARD=17
-#           make
+      - name: Configure and build
+        run: |
+          mkdir -p build
+          cd build
+          cmake .. -DCMAKE_PREFIX_PATH="$(brew --prefix)" -DCMAKE_CXX_STANDARD=17
+          make
 
-#       - name: Run tests
-#         run: |
-#           cd build
-#           ctest --output-on-failure
+      - name: Run tests
+        run: |
+          cd build
+          ctest --output-on-failure
