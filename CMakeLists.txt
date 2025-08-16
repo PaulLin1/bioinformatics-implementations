@@ -40,12 +40,8 @@ endif()
 find_package(GTest REQUIRED)
 
 set(TEST_SRC
-    tests/cpu_sw_test.cpp
+    tests/sw_test.cpp
 )
-
-if(USE_CUDA)
-    list(APPEND TEST_SRC tests/cuda_sw_test.cpp)
-endif()
 
 add_executable(algorithm_tests ${TEST_SRC})
 
