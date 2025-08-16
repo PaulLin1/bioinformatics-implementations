@@ -1,6 +1,9 @@
 # Smith Waterman
 
-More info about this algorithm can be found here: https://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm
+## Overall Implementation Details
+- In my code, the scoring matrix is represented by the letter H, which is the standard variable used.
+- My create_sw_scoring_matrix function specifies sw because needlman_wunsch uses it something similar.
+- Everything matrix in row major.
 
 ## Naive CPU Implementation
 Basic dynamic programming. Not much to talk about.
@@ -11,7 +14,7 @@ Regular Tests: 1.0s
 NCBI RefSeq full organism collection: too large to profile
 
 ## Naive CUDA Implementation
-Basic dynamic programming. Not much to talk about. 
+The creation of the scoring matrix is 
 
 ### Profiling Info with Perf on H200
 Regular Tests: 1.0s

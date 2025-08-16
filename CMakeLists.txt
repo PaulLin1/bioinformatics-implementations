@@ -1,27 +1,51 @@
 cmake_minimum_required(VERSION 3.14)
-project(SmithWatermanProject LANGUAGES CXX)
+project(AlgorithmProject LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Add GoogleTest
-find_package(GTest REQUIRED)
+# Option to choose CUDA or CPU. Default CPU
+option(USE_CUDA "Use CUDA implementation" OFF)
+if(USE_CUDA)
+    enable_language(CUDA)
+endif()
 
-# Library target
-add_library(smith_waterman
-    smith_waterman/smith_waterman.cpp
-    utils/utils.cpp
+# List of algorithms
+set(ALGORITHMS
+    smith_waterman
+    # needleman_wunsch
+    # edit_distance
 )
 
-target_include_directories(smith_waterman PUBLIC
-    ${CMAKE_SOURCE_DIR}/smith_waterman
-    ${CMAKE_SOURCE_DIR}/utils
-)
+foreach(ALG ${ALGORITHMS})
+    if(USE_CUDA)
+        set(SRC algorithm/${ALG}/cuda_${ALG}.cu)
+    else()
+        set(SRC algorithm/${ALG}/naive_${ALG}.cpp)
+    endif()
 
-# Test target
-add_executable(smith_waterman_test tests/smith_waterman_test.cpp)
-target_link_libraries(smith_waterman_test PRIVATE smith_waterman GTest::gtest_main)
+    # Main executable for each algorithm
+    add_executable(${ALG}_program main.cpp ${SRC})
 
-# Enable tests
+    # Library for each algorithm (optional)
+    add_library(${ALG}_lib
+        algorithm/${ALG}/${ALG}.cpp
+        utils/utils.cpp
+    )
+    target_include_directories(${ALG}_lib PUBLIC
+        ${CMAKE_SOURCE_DIR}/algorithm/${ALG}
+        ${CMAKE_SOURCE_DIR}/utils
+    )
+
+    target_link_libraries(${ALG}_program PRIVATE ${ALG}_lib)
+endforeach()
+
+# GoogleTest
+# find_package(GTest REQUIRED)
+# add_executable(algorithm_tests tests/algorithm_tests.cpp)
+# foreach(ALG ${ALGORITHMS})
+#    target_link_libraries(algorithm_tests PRIVATE ${ALG}_lib)
+# endforeach()
+
 enable_testing()
-add_test(NAME SmithWatermanTests COMMAND smith_waterman_test)
+add_test(NAME AlgorithmTests COMMAND algorithm_tests)
