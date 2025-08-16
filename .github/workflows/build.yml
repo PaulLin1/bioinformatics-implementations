@@ -16,10 +16,13 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Format with clang-Format
+      - name: Install clang-format
+        run: brew install clang-format
+
+      - name: Format with clang-format
         run: |
           find . -type f \( -name "*.cpp" -o -name "*.h" -o -name "*.cu" \) -exec clang-format -i {} +
-          
+
       - name: Install dependencies (including googletest)
         run: |
           brew update
