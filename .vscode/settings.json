@@ -50,6 +50,10 @@
         "tuple": "cpp",
         "typeinfo": "cpp",
         "variant": "cpp",
-        "algorithm": "cpp"
+        "algorithm": "cpp",
+        "fstream": "cpp",
+        "iomanip": "cpp",
+        "__tree": "cpp",
+        "map": "cpp"
     }
 }

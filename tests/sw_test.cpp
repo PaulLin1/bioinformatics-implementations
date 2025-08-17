@@ -2,7 +2,7 @@
 Tests work for both CPU and GPU
 */
 
-#include "smith_waterman.h"
+#include "bioinformatics-pipeline/smith_waterman.h"
 
 #include <gtest/gtest.h>
 

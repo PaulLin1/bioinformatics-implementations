@@ -1,12 +1,7 @@
 #include <iostream>
 #include <string>
 
-int main(int argc, char *argv[]) {
-	if (argc < 2) {
-		std::cerr << "Usage: " << argv[0] << " <sequences_file>\n";
-		return 1;
-	}
-
+void pipeline(std::string fileName, ) {
 	std::ifstream infile(argv[1]);
 	if (!infile) {
 		std::cerr << "Error opening file: " << argv[1] << "\n";

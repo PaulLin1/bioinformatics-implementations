@@ -8,25 +8,31 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 option(USE_CUDA "Use CUDA implementation" OFF)
 
 # -----------------------------------------------------------------
+# Hamming distance sources
+
+# -----------------------------------------------------------------
+# Needleman-Wunsch sources
+
+# -----------------------------------------------------------------
 # Smith-Waterman sources
 set(ALG smith_waterman)
 
 set(SRC
-    algorithms/${ALG}/smith_waterman.cpp
-    algorithms/${ALG}/cpu_sw_create_scoring_matrix.cpp
+    src/algorithms/${ALG}/smith_waterman.cpp
+    src/algorithms/${ALG}/cpu_sw_create_scoring_matrix.cpp
 )
 
 if(USE_CUDA)
     # Modern CMake way to find CUDA
     find_package(CUDAToolkit REQUIRED)
-    list(APPEND SRC algorithms/${ALG}/cuda_sw_create_scoring_matrix.cu)
+    list(APPEND SRC src/algorithms/${ALG}/cuda_sw_create_scoring_matrix.cu)
 endif()
 
 # Library for Smith-Waterman
 add_library(${ALG}_lib ${SRC})
 
 target_include_directories(${ALG}_lib PUBLIC
-    ${CMAKE_SOURCE_DIR}/algorithms/${ALG}
+    ${CMAKE_SOURCE_DIR}/include/
 )
 
 # Link CUDA runtime if needed
@@ -34,6 +40,7 @@ if(USE_CUDA)
     target_link_libraries(${ALG}_lib PRIVATE CUDA::cudart)
     target_compile_definitions(${ALG}_lib PUBLIC USE_CUDA=1)
 endif()
+
 
 # -----------------------------------------------------------------
 # GoogleTest

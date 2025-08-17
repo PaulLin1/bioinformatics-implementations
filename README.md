@@ -54,15 +54,22 @@ Designed for **high-throughput sequence processing** at terabyte scale:
    - Logs throughput, latency, and memory usage.  
    - Uses fault tolerance and checkpointing to handle long-running terabyte-scale jobs.
 
+Datasets used: [Kaggle DNA Sequences dataset](https://www.kaggle.com/datasets/nageshsingh/dna-sequence-dataset?resource=download) and 1000 Genomes Project (50 Genomes)
+
+The Kaggle dataset has classes. I structured this pipeline as a kind of classification problem where I randomly sample a genome and use Smith-Waterman or whatever algorithm to predict its class.
+
+Each indivial genome is quite large. A single genome in the 1000 Genomes Project dataset was about 3 GB. Even though I had 50 TB of strach space, I chose to keep my experiments smaller and show their scalability. Projections for each algorithm can be found in its corresponding README.
+
 ---
 
 ## Performance & Reliability
 
+- All profiling was done on entire algorithms. For example, for Smith Waterman, I only parallelized the DP scoring matrix part, but the runtime I recorded includes initialization and traceback.
 - Achieved **30× speedup** over CPU baselines on large datasets with **1B+ sequences**.  
 - Custom **allocators and smart-pointer-based memory management** reduce fragmentation, cut allocations by ~40%, and eliminate memory leaks.  
 - Hot paths profiled and optimized using **perf**; correctness and memory safety validated with **Valgrind**.  
 - **90%+ unit test coverage** using **GoogleTest**.  
-- Automated **CI/CD** with **GitHub Actions**.
+- Automated **CI/CD** with **GitHub Actions**. This includes building, formatting with clang-format, and testing.
 
 ---
 

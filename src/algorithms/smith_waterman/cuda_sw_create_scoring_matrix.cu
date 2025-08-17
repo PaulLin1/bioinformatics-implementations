@@ -1,4 +1,4 @@
-#include "cuda_sw_create_scoring_matrix.h"
+#include "bioinformatics-pipeline/cuda_sw_create_scoring_matrix.h"
 
 #include <algorithm>
 #include <cuda_runtime.h>

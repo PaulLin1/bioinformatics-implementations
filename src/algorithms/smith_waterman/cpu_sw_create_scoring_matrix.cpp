@@ -1,4 +1,4 @@
-#include "cpu_sw_create_scoring_matrix.h"
+#include "bioinformatics-pipeline/cpu_sw_create_scoring_matrix.h"
 
 #include <algorithm>
 #include <iostream>

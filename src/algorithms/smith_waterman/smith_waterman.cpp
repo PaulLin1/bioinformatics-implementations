@@ -1,7 +1,7 @@
 
-#include "smith_waterman.h"
-#include "cpu_sw_create_scoring_matrix.h"
-#include "cuda_sw_create_scoring_matrix.h"
+#include "bioinformatics-pipeline/smith_waterman.h"
+#include "bioinformatics-pipeline/cpu_sw_create_scoring_matrix.h"
+// #include "bioinformatics-pipeline/cuda_sw_create_scoring_matrix.h"
 
 #include <algorithm>
 #include <iostream>
@@ -126,7 +126,7 @@ SWResult smith_waterman(const std::string &seq1, const std::string &seq2,
 //     int gap_penalty = -1;
 
 //     SWResult result_cpu = smith_waterman(seq1, seq2, match_score,
-//     mismatch_score, gap_penalty, false);
+//     mismatch_score, gap_penalty);
 
 //     std::cout << "CPU Smith-Waterman result:\n";
 //     std::cout << "Score: " << result_cpu.score << "\n";
