@@ -56,7 +56,7 @@ Designed for **high-throughput sequence processing** at terabyte scale:
 
 Datasets used: [Kaggle DNA Sequences dataset](https://www.kaggle.com/datasets/nageshsingh/dna-sequence-dataset?resource=download) and 1000 Genomes Project (50 Genomes)
 
-The Kaggle dataset has classes. I structured this pipeline as a kind of classification problem where I randomly sample a genome and use Smith-Waterman or whatever algorithm to predict its class.
+The Kaggle dataset has 6 classes with a total of 4380 sequences. I structured this pipeline as a kind of classification problem where I randomly sample a genome and use Smith-Waterman or whatever algorithm to predict its class.
 
 Each indivial genome is quite large. A single genome in the 1000 Genomes Project dataset was about 3 GB. Even though I had 50 TB of strach space, I chose to keep my experiments smaller and show their scalability. Projections for each algorithm can be found in its corresponding README.
 
