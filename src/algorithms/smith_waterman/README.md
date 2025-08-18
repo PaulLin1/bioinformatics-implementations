@@ -5,33 +5,33 @@
 ## Overall Implementation Details
 
 - In my code, the scoring matrix is represented by the letter H, which is the standard variable used.
-- My create_sw_scoring_matrix function specifies sw because needlman_wunsch uses it something similar.
-- Everything matrix in row major.
+- My create_sw_scoring_matrix function specifies sw because needlman_wunsch uses something similar. For clarity.
+- Every matrix in row major.
 
 ---
 
-## Naive CPU Implementation
+## CPU Implementation
 
 Basic dynamic programming. Not much to talk about.
 
-### Profiling Info with Perf on CPU
+### CPU Profiling Info with Perf
 
 Regular Tests: 1.0s
 
-1000 Genomes Project chromosome subsets (~2–4 GB FASTA files): too large to profile
+Kaggle Dataset: 
 
 NCBI RefSeq full organism collection: too large to profile
 
 ---
 
-## Naive CUDA Implementation
+## CUDA Implementation
 
 The creation of the scoring matrix is parallelized.
 
-### Profiling Info with Perf on H200
+### H200 Profiling Info with Perf
 
 Regular Tests: 1.0s
 
-1000 Genomes Project chromosome subsets (~2–4 GB FASTA files):
+Kaggle Dataset: 
 
-NCBI RefSeq full organism collection:
+NCBI RefSeq full organism collection: too large to profile

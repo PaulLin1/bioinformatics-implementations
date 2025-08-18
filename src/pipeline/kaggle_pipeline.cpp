@@ -1,6 +1,7 @@
 /*
 Pipeline for the kaggle dataset
-Class prediction using the algorithm scores
+Homology detection: Given a query sequence, align it against all sequences
+in the database (class-labeled).
 Data is .txt file with tab spacing
 */
 
@@ -14,7 +15,10 @@ Data is .txt file with tab spacing
 #include <cstdlib>
 #include <ctime>
 #include <map>
+#include <algorithm>
+#include <stdexcept>
 
+// Split sequence into overlapping chunks (for GPU)
 std::vector<std::string> chunk_sequence(const std::string& seq, int chunk_len, int overlap) {
     std::vector<std::string> chunks;
 
@@ -22,45 +26,25 @@ std::vector<std::string> chunk_sequence(const std::string& seq, int chunk_len, i
         throw std::invalid_argument("Invalid chunk_len/overlap values");
     }
 
-    for (size_t i = 0; i < seq.size(); i += (chunk_len - overlap)) {
+    int step = chunk_len - overlap;
+    for (size_t i = 0; i < seq.size(); i += step) {
         int len = std::min(chunk_len, static_cast<int>(seq.size() - i));
-        chunks.push_back(seq.substr(i, len));
+        if (len > 0) {  // Avoid empty chunks
+            chunks.push_back(seq.substr(i, len));
+        }
     }
 
     return chunks;
 }
 
-std::pair<int, std::string> pick_target_sequence(std::map<int, std::vector<std::string>>& data_by_class) {
-    if (data_by_class.empty()) {
-        throw std::runtime_error("No data to pick from!");
-    }
-
-    // Pick random key
-    int key_index = std::rand() % data_by_class.size();
-    auto it = data_by_class.begin();
-    std::advance(it, key_index);
-
-    auto& vec = it->second;
-    if (vec.empty()) {
-        throw std::runtime_error("Selected class has no sequences!");
-    }
-
-    // Pick random element from the vector
-    int val_index = std::rand() % vec.size();
-    std::string sequence = vec[val_index];
-
-    // Remove the element from the vector
-    vec.erase(vec.begin() + val_index);
-
-    return {it->first, sequence};
-}
-
-std::map<int, std::vector<std::string>> create_class_to_sequences(std::string file_name) {
+// Load database: map from class to list of sequences
+std::map<int, std::vector<std::string>> create_class_to_sequences(const std::string& file_name) {
     std::ifstream infile(file_name);
     if (!infile) {
         std::cerr << "Error: Could not open file " << file_name << "\n";
         return {};
     }
+    
     std::map<int, std::vector<std::string>> class_to_sequences;
     std::string line;
 
@@ -74,8 +58,8 @@ std::map<int, std::vector<std::string>> create_class_to_sequences(std::string fi
         if (std::getline(iss, sequence, '\t') && std::getline(iss, cls_str)) {
             try {
                 int cls = std::stoi(cls_str);
-                class_to_sequences[cls].push_back(sequence);
-            } catch (const std::invalid_argument& e) {
+                class_to_sequences[cls].push_back(std::move(sequence));
+            } catch (const std::invalid_argument&) {
                 std::cerr << "Warning: Invalid class label, skipping line: " << line << "\n";
             }
         } else {
@@ -86,90 +70,104 @@ std::map<int, std::vector<std::string>> create_class_to_sequences(std::string fi
     return class_to_sequences;
 }
 
-void kaggle_pipeline(
-    const std::string& file_name,
+// Compute similarity of query sequence against all database sequences
+std::map<int, float> detect_homology(
+    const std::string& query_sequence,
+    const std::map<int, std::vector<std::string>>& class_to_sequences,
     const std::string& algorithm,
     int chunk_len,
     int overlap,
     bool CUDA,
+    bool verbose = false,
     int match_score = 2,
-    int mismatch_penalty =-1,
+    int mismatch_penalty = -1,
     int gap_penalty = 2) {
-    /*
-    Read in data and put them into a hashmap with the
-    key being the class and the value being a list of the sequences
-    in the class
-    */
-    std::map<int, std::vector<std::string>> class_to_sequences = create_class_to_sequences(file_name);
-    if (class_to_sequences.empty()) {
-        std::cerr << "No data loaded.\n";
+    
+    // Chunk query sequence
+    const auto query_chunks = chunk_sequence(query_sequence, chunk_len, overlap);
+
+    if (query_chunks.empty()) {
+        std::cerr << "Warning: Query sequence shorter than chunk length.\n";
     }
 
-    // Get random value to compare against
-    std::srand(0);
-    // std::srand(std::time(nullptr)); // seed
-    auto [target_sequence_class, target_sequence] = pick_target_sequence(class_to_sequences);
-    std::cout << "Random value: " << target_sequence << " from class " << target_sequence_class << "\n";
-
-    // Chunk target_sequence
-    std::vector<std::string> target_seq_chunks = chunk_sequence(target_sequence, chunk_len, overlap);
-
-    // Assigns a score to each class
     std::map<int, float> class_to_score;
 
     for (const auto& [label, sequences] : class_to_sequences) {
-        int score_sum = 0;
-        int class_length = sequences.size();
-
-        // Preallocate chunk_scores vector once (max possible size)
-        std::vector<int> chunk_scores;
-        chunk_scores.reserve(5);
-
-        // Temporary vector to hold chunks (reuse for each sequence)
-        std::vector<std::string> current_seq_chunks;
+        std::vector<float> all_scores;
 
         for (const auto& sequence : sequences) {
-            // Reuse vector instead of creating new one
-            current_seq_chunks.clear();
-            current_seq_chunks = chunk_sequence(sequence, chunk_len, overlap);
+            const auto seq_chunks = chunk_sequence(sequence, chunk_len, overlap);
 
-            int num_of_iterations = std::min(current_seq_chunks.size(), target_seq_chunks.size());
-
-            // Reuse chunk_scores vector
-            chunk_scores.clear();
-
-            if (algorithm == "Smith-Waterman") {
-                for (int i = 0; i < num_of_iterations; i++) {
-                    SWResult result_cpu = smith_waterman(target_seq_chunks[i], current_seq_chunks[i],
-                                                         match_score, mismatch_penalty, gap_penalty);
-                    chunk_scores.push_back(result_cpu.score);
-                }
-            } else {
-                throw std::invalid_argument("Invalid algorithm");
+            if (seq_chunks.empty()) {
+                if (verbose) std::cerr << "Warning: Sequence too short, skipping.\n";
+                continue;
             }
 
-            // Add the best chunk score for this sequence
-            score_sum += *std::max_element(chunk_scores.begin(), chunk_scores.end());
+            // Compare all query chunks to all sequence chunks
+            for (const auto& q_chunk : query_chunks) {
+                for (const auto& s_chunk : seq_chunks) {
+                    SWResult result;
+                    if (algorithm == "Smith-Waterman") {
+                        result = smith_waterman(q_chunk, s_chunk,
+                                                match_score, mismatch_penalty, gap_penalty);
+                    } else {
+                        throw std::invalid_argument("Invalid algorithm");
+                    }
+                    all_scores.push_back(static_cast<float>(result.score));
+                }
+            }
         }
 
-        float average_score = static_cast<float>(score_sum) / class_length;
-        class_to_score[label] = average_score;
-        std::cout << "Class " << label << ": " << average_score << std::endl;
+        // Aggregate scores
+        if (!all_scores.empty()) {
+            float sum = 0.0f;
+            for (float score : all_scores) sum += score;
+            class_to_score[label] = sum / all_scores.size();
+        } else {
+            class_to_score[label] = 0.0f;
+        }
+
+        if (verbose) {
+            std::cout << "Class " << label << " mean score: " << class_to_score[label] << "\n";
+        }
     }
 
-    // Returns the class with the highest avg score
-    const int predicted_class = std::max_element(
-        class_to_score.begin(), class_to_score.end(),
-        [](auto a, auto b){ return a.second < b.second; }
-    )->first;
+    return class_to_score;
 }
 
-int main() {
-    std::string file_name = "data/raw/kaggle_human.txt";
-    std::string algorithm = "Smith-Waterman";
-    int chuck_len = 64;
-    int overlap = 32;
-    bool CUDA = false;
 
-    kaggle_pipeline(file_name, algorithm, chuck_len, overlap, CUDA);
+int main() {
+    const std::string db_file = "data/raw/kaggle_human.txt";
+    const std::string algorithm = "Smith-Waterman";
+    const int chunk_len = 64;
+    const int overlap = 16;
+    const bool CUDA = false;
+
+    const std::string query_sequence = "ATGCGTACCTGAAGT";
+
+    // Load database
+    auto class_to_sequences = create_class_to_sequences(db_file);
+    if (class_to_sequences.empty()) {
+        std::cerr << "No database sequences loaded.\n";
+        return 1;
+    }
+
+    // Detect homology
+    auto class_scores = detect_homology(query_sequence, class_to_sequences,
+                                        algorithm, chunk_len, overlap, CUDA);
+    if (class_scores.empty()) {
+        std::cerr << "Failed to compute homology scores\n";
+        return 1;
+    }
+
+    // Find best-matching class
+    auto best = std::max_element(class_scores.begin(), class_scores.end(),
+                                 [](const auto& a, const auto& b) {
+                                     return a.second < b.second;
+                                 });
+
+    std::cout << "\nBest match: class " << best->first
+              << " with score " << best->second << "\n";
+
+    return 0;
 }
