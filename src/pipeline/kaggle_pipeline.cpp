@@ -6,6 +6,8 @@ Data is .txt file with tab spacing
 */
 
 #include "bioinformatics-pipeline/smith_waterman.h"
+#include "bioinformatics-pipeline/hamming_distance.h"
+#include "bioinformatics-pipeline/needleman_wunsch.h"
 
 #include <iostream>
 #include <fstream>
@@ -18,7 +20,7 @@ Data is .txt file with tab spacing
 #include <algorithm>
 #include <stdexcept>
 
-// Split sequence into overlapping chunks (for GPU)
+// Split sequence into overlapping chunks
 std::vector<std::string> chunk_sequence(const std::string& seq, int chunk_len, int overlap) {
     std::vector<std::string> chunks;
 
@@ -38,6 +40,7 @@ std::vector<std::string> chunk_sequence(const std::string& seq, int chunk_len, i
 }
 
 // Load database: map from class to list of sequences
+// Specific to this kaggle task
 std::map<int, std::vector<std::string>> create_class_to_sequences(const std::string& file_name) {
     std::ifstream infile(file_name);
     if (!infile) {
@@ -106,14 +109,19 @@ std::map<int, float> detect_homology(
             // Compare all query chunks to all sequence chunks
             for (const auto& q_chunk : query_chunks) {
                 for (const auto& s_chunk : seq_chunks) {
-                    SWResult result;
+                    int result;
                     if (algorithm == "Smith-Waterman") {
                         result = smith_waterman(q_chunk, s_chunk,
-                                                match_score, mismatch_penalty, gap_penalty);
+                                                match_score, mismatch_penalty, gap_penalty).score;     
+                    } else if (algorithm == "Hamming-Distance") {
+                        result = hamming_distance(q_chunk, s_chunk);            
+                    } else if (algorithm == "Needleman-Wunsch") {
+                        result = needleman_wunsch(q_chunk, s_chunk,
+                                                match_score, mismatch_penalty, gap_penalty).score;        
                     } else {
                         throw std::invalid_argument("Invalid algorithm");
                     }
-                    all_scores.push_back(static_cast<float>(result.score));
+                    all_scores.push_back(static_cast<float>(result));
                 }
             }
         }
@@ -135,10 +143,9 @@ std::map<int, float> detect_homology(
     return class_to_score;
 }
 
-
 int main() {
     const std::string db_file = "data/raw/kaggle_human.txt";
-    const std::string algorithm = "Smith-Waterman";
+    const std::string algorithm = "Needleman-Wunsch";
     const int chunk_len = 64;
     const int overlap = 16;
     const bool CUDA = false;

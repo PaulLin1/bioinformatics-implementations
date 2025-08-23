@@ -1,14 +1,14 @@
 
 #include "bioinformatics-pipeline/smith_waterman.h"
 #include "bioinformatics-pipeline/cpu_sw_create_scoring_matrix.h"
-// #include "bioinformatics-pipeline/cuda_sw_create_scoring_matrix.h"
+#include "bioinformatics-pipeline/cuda_sw_create_scoring_matrix.h"
 
 #include <algorithm>
 #include <iostream>
 #include <utility>
 
 static std::pair<std::string, std::string>
-traceback(const std::string &seq1, const std::string &seq2,
+sw_traceback(const std::string &seq1, const std::string &seq2,
           const std::vector<int> &H, int rows, int cols,
           const std::pair<int, int> &best_index, int max_value, int match_score,
           int mismatch_score, int gap_penalty) {
@@ -30,6 +30,8 @@ traceback(const std::string &seq1, const std::string &seq2,
 		int top_j = j - 1;
 		int left_i = i - 1;
 		int left_j = j;
+
+		if (i == 0 || j == 0) break;
 
 		char a = seq1[i - 1];
 		char b = seq2[j - 1];
@@ -109,7 +111,7 @@ SWResult smith_waterman(const std::string &seq1, const std::string &seq2,
 	}
 
 	auto [aligned1, aligned2] =
-	    traceback(seq1, seq2, H, rows, cols, {max_i, max_j}, max_val,
+	    sw_traceback(seq1, seq2, H, rows, cols, {max_i, max_j}, max_val,
 	              match_score, mismatch_score, gap_penalty);
 
 	return {max_val, aligned1, aligned2};

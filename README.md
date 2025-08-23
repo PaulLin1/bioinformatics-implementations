@@ -32,6 +32,9 @@ The **systems design** was inspired partly by my **AWS experience** and partly b
 
 ## GPU-Accelerated Streaming Pipeline
 
+
+Diagram made with LucidChart.
+
 Designed for **high-throughput sequence processing** at terabyte scale:
 
 1. **Data Ingestion Layer**  

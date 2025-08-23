@@ -85,8 +85,8 @@ cuda_sw_create_scoring_matrix(const std::string &seq1, const std::string &seq2,
 	CUDA_CHECK(cudaMalloc((void **)&d_H, rows * cols * sizeof(int)));
 
 	// Copy seq1 and seq2 and init H to 0
-	CUDA_CHECK(cudaMemcpy(d_seq1, seq1.data(), len1, cudaMemcpyHostToDevice));
-	CUDA_CHECK(cudaMemcpy(d_seq2, seq2.data(), len2, cudaMemcpyHostToDevice));
+	CUDA_CHECK(cudaMemcpy(d_seq1, seq1.data(), len1 * sizeof(char), cudaMemcpyHostToDevice));
+	CUDA_CHECK(cudaMemcpy(d_seq2, seq2.data(), len2 * sizeof(char), cudaMemcpyHostToDevice));
 	CUDA_CHECK(cudaMemset(d_H, 0, rows * cols * sizeof(int)));
 
 	constexpr int TPB = 256; // Not optimized. Just random for now

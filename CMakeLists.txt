@@ -8,51 +8,93 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 option(USE_CUDA "Use CUDA implementation" OFF)
 
 # -----------------------------------------------------------------
-# Hamming distance sources
-
-# -----------------------------------------------------------------
-# Needleman-Wunsch sources
-
-# -----------------------------------------------------------------
-# Smith-Waterman sources
-set(ALG smith_waterman)
-
-set(SRC
-    src/algorithms/${ALG}/smith_waterman.cpp
-    src/algorithms/${ALG}/cpu_sw_create_scoring_matrix.cpp
-)
+# Hamming Distance library
+set(HD_SRC
+    src/algorithms/hamming_distance/hamming_distance.cpp
+    src/algorithms/hamming_distance/cpu_hamming_distance.cpp
+    )
 
 if(USE_CUDA)
-    # Modern CMake way to find CUDA
     find_package(CUDAToolkit REQUIRED)
-    list(APPEND SRC src/algorithms/${ALG}/cuda_sw_create_scoring_matrix.cu)
+    list(APPEND HD_SRC src/algorithms/hamming_distance/cuda_hamming_distance.cu)
 endif()
 
-# Library for Smith-Waterman
-add_library(${ALG}_lib ${SRC})
+add_library(hamming_distance_lib ${HD_SRC})
+target_include_directories(hamming_distance_lib PUBLIC ${CMAKE_SOURCE_DIR}/include/)
 
-target_include_directories(${ALG}_lib PUBLIC
-    ${CMAKE_SOURCE_DIR}/include/
-)
-
-# Link CUDA runtime if needed
 if(USE_CUDA)
-    target_link_libraries(${ALG}_lib PRIVATE CUDA::cudart)
-    target_compile_definitions(${ALG}_lib PUBLIC USE_CUDA=1)
+    target_link_libraries(hamming_distance_lib PRIVATE CUDA::cudart)
+    target_compile_definitions(hamming_distance_lib PUBLIC USE_CUDA=1)
 endif()
-
 
 # -----------------------------------------------------------------
-# GoogleTest
+# Needleman Wunsch library
+set(NW_SRC
+    src/algorithms/needleman_wunsch/needleman_wunsch.cpp
+    src/algorithms/needleman_wunsch/cpu_nw_create_scoring_matrix.cpp
+    )
+
+# if(USE_CUDA)
+#     find_package(CUDAToolkit REQUIRED)
+#     list(APPEND NW_SRC src/algorithms/needleman_wunsch/cuda_needleman_wunsch.cu)
+# endif()
+
+add_library(needleman_wunsch_lib ${NW_SRC})
+target_include_directories(needleman_wunsch_lib PUBLIC ${CMAKE_SOURCE_DIR}/include/)
+
+if(USE_CUDA)
+    target_link_libraries(needleman_wunsch_lib PRIVATE CUDA::cudart)
+    target_compile_definitions(needleman_wunsch_lib PUBLIC USE_CUDA=1)
+endif()
+
+# -----------------------------------------------------------------
+# Smith-Waterman library
+set(SW_SRC
+    src/algorithms/smith_waterman/smith_waterman.cpp
+    src/algorithms/smith_waterman/cpu_sw_create_scoring_matrix.cpp
+)
+
+if(USE_CUDA)
+    find_package(CUDAToolkit REQUIRED)
+    list(APPEND SW_SRC src/algorithms/smith_waterman/cuda_sw_create_scoring_matrix.cu)
+endif()
+
+add_library(smith_waterman_lib ${SW_SRC})
+target_include_directories(smith_waterman_lib PUBLIC ${CMAKE_SOURCE_DIR}/include/)
+
+if(USE_CUDA)
+    target_link_libraries(smith_waterman_lib PRIVATE CUDA::cudart)
+    target_compile_definitions(smith_waterman_lib PUBLIC USE_CUDA=1)
+endif()
+
+# -----------------------------------------------------------------
+# GoogleTest for Hamming Distance
 find_package(GTest REQUIRED)
 
-set(TEST_SRC
-    tests/sw_test.cpp
-)
+set(HD_TEST_SRC tests/hd_test.cpp)
 
-add_executable(algorithm_tests ${TEST_SRC})
-
-target_link_libraries(algorithm_tests PRIVATE ${ALG}_lib GTest::GTest GTest::Main)
+add_executable(hd_test ${HD_TEST_SRC})
+target_link_libraries(hd_test PRIVATE hamming_distance_lib GTest::GTest GTest::Main)
 
 enable_testing()
-add_test(NAME AlgorithmTests COMMAND algorithm_tests)
+add_test(NAME HammingDistanceTests COMMAND hd_test)
+
+# -----------------------------------------------------------------
+# GoogleTest for needleman-Wunsch
+set(NW_TEST_SRC tests/nw_test.cpp)
+
+add_executable(nw_test ${NW_TEST_SRC})
+target_link_libraries(nw_test PRIVATE needleman_wunsch_lib GTest::GTest GTest::Main)
+
+enable_testing()
+add_test(NAME needlemanWunschTests COMMAND nw_test)
+
+# -----------------------------------------------------------------
+# GoogleTest for Smith-Waterman
+set(SW_TEST_SRC tests/sw_test.cpp)
+
+add_executable(sw_test ${SW_TEST_SRC})
+target_link_libraries(sw_test PRIVATE smith_waterman_lib GTest::GTest GTest::Main)
+
+enable_testing()
+add_test(NAME SmithWatermanTests COMMAND sw_test)
