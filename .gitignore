@@ -43,3 +43,5 @@
 build/
 
 data/
+
+venv

@@ -1,11 +1,14 @@
-#ifndef CPU_NW_CREATE_SCORING_MATRIX_H_
-#define CPU_NW_CREATE_SCORING_MATRIX_H_
+#ifndef CUDA_NEEDLEMAN_WUNSCH_H_
+#define CUDA_NEEDLEMAN_WUNSCH_H_
+
+#include "bioinformatics-pipeline/cpu_needleman_wunsch.h"
 
 #include <string>
 #include <vector>
+#include <cuda_runtime.h>
 
 /**
- * @brief Creates the Needleman-Wunsch scoring matrix on CPU.
+ * @brief Creates the Needleman-Wunsch scoring matrix on GPU.
  *
  * @param seq1 First input sequence
  * @param seq2 Second input sequence
@@ -17,9 +20,9 @@
  * 1)
  * @return 1D vector containing the scoring matrix in row-major order
  */
-std::vector<int>
-cpu_nw_create_scoring_matrix(const std::string &seq1, const std::string &seq2,
+NWResult cuda_needleman_wunsch(const std::string &seq1, const std::string &seq2,
                              int match_score, int mismatch_score,
-                             int gap_penalty, int rows, int cols);
+                             int gap_penalty, cudaStream_t stream = 0);
 
-#endif // CPU_NW_CREATE_SCORING_MATRIX_H_
+                            
+#endif // CUDA_NEEDLEMAN_WUNSCH_H_

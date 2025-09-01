@@ -1,11 +1,17 @@
-#ifndef CUDA_SW_CREATE_SCORING_MATRIX_H_
-#define CUDA_SW_CREATE_SCORING_MATRIX_H_
+#ifndef CPU_NEEDLEMAN_WUNSCH_H_
+#define CPU_NEEDLEMAN_WUNSCH_H_
 
 #include <string>
 #include <vector>
 
+struct NWResult {
+    int score;
+    std::string aligned_seq1;
+    std::string aligned_seq2;
+};
+
 /**
- * @brief Creates the Smith-Waterman scoring matrix on GPU using CUDA.
+ * @brief Creates the Needleman-Wunsch scoring matrix on CPU.
  *
  * @param seq1 First input sequence
  * @param seq2 Second input sequence
@@ -17,9 +23,8 @@
  * 1)
  * @return 1D vector containing the scoring matrix in row-major order
  */
-std::vector<int>
-cuda_sw_create_scoring_matrix(const std::string &seq1, const std::string &seq2,
-                              int match_score, int mismatch_score,
-                              int gap_penalty, int rows, int cols);
+NWResult cpu_needleman_wunsch(const std::string &seq1, const std::string &seq2,
+                             int match_score, int mismatch_score,
+                             int gap_penalty);
 
-#endif // CUDA_SW_CREATE_SCORING_MATRIX_H_
+#endif // CPU_NEEDLEMAN_WUNSCH_H_

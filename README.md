@@ -2,8 +2,6 @@
 
 A personal project exploring high-performance sequence processing and GPU acceleration in C++17 and CUDA.
 
-Pretty much everything written right now is a work in progress. Inspired by reading Carmack's .plan files.
-
 ---
 
 ## Motivation
@@ -59,7 +57,7 @@ Designed for **high-throughput sequence processing** at terabyte scale:
 
 Datasets used: [Kaggle DNA Sequences dataset](https://www.kaggle.com/datasets/nageshsingh/dna-sequence-dataset?resource=download) and 1000 Genomes Project (50 Genomes)
 
-The Kaggle dataset has 6 classes with a total of 4380 sequences. I structured this pipeline as a kind of classification problem where I randomly sample a genome and use Smith-Waterman or whatever algorithm to predict its class.
+The Kaggle dataset has 6 classes with a total of 4380 sequences. I structured this pipeline as a kind of classification problem where I randomly sample a genome and use Smith-Waterman or whatever algorithm to predict its class. This dataset is pretty small and thus CPU performs a lot better than CUDA. 
 
 Each indivial genome is quite large. A single genome in the 1000 Genomes Project dataset was about 3 GB. Even though I had 50 TB of strach space, I chose to keep my experiments smaller and show their scalability. Projections for each algorithm can be found in its corresponding README.
 
@@ -69,18 +67,28 @@ Each indivial genome is quite large. A single genome in the 1000 Genomes Project
 
 - All profiling was done on entire algorithms. For example, for Smith Waterman, I only parallelized the DP scoring matrix part, but the runtime I recorded includes initialization and traceback.
 - Achieved **30× speedup** over CPU baselines on large datasets with **1B+ sequences**.  
-- Custom **allocators and smart-pointer-based memory management** reduce fragmentation, cut allocations by ~40%, and eliminate memory leaks.  
-- Hot paths profiled and optimized using **perf**; correctness and memory safety validated with **Valgrind**.  
-- **90%+ unit test coverage** using **GoogleTest**.  
-- Automated **CI/CD** with **GitHub Actions**. This includes building, formatting with clang-format, and testing.
+
+
+RESULTS HERE
+
+
+For my final test, I ran the simulation on the UniProt Dataset capping it at 100,000 sequences. The dataset is a lot bigger, but for this benchmark I thought 100,000 sequences would suffice.
+
+CPU Smith Waterman: 370.095s
+CUDA Smith Waterman: 9.8s
+
+This is a 37x increase in speed. For Smith Waterman I only bencharmked the create scoring matrix function because it is the only parallelized part. The traceback wasn't included in benchmarking. However, this is a signification speed up, especially since creating the matrix the most compute intensive aprt of the algorithm.
+
+
+For relibability I got **90%+ unit test coverage** using **GoogleTest** and automated **CI/CD** with **GitHub Actions**. This includes building, formatting with clang-format, and testing.
 
 ---
 
 ## Project Structure
 
-- **`/algorithms`** – Implementations of algorithms. Each algorithm contains a README with more information about the algorithm and profiling.
+- **`/src/algorithms`** – Implementations of algorithms. Each algorithm contains a README with more information about the algorithm and profiling.
+- **`/src/pipeline`** – Highly modular pipeline for streaming in data. Supports GPU and CPU.
 - **`/utils`** – Utilities libraries.  
-- **`/pipeline`** – Highly modular pipeline for streaming in data. Supports GPU and CPU.
 - **`/tests`** – Unit tests using GoogleTest. Each algorithm and the pipeline has its own tests.
 - **`CMakeLists.txt`** – Modular build system with clear dependencies for extensibility.
 

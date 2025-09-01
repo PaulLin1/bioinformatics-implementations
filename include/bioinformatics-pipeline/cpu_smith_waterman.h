@@ -1,8 +1,14 @@
-#ifndef CPU_SW_CREATE_SCORING_MATRIX_H_
-#define CPU_SW_CREATE_SCORING_MATRIX_H_
+#ifndef CPU_SMITH_WATERMAN_H_
+#define CPU_SMITH_WATERMAN_H_
 
 #include <string>
 #include <vector>
+
+struct SWResult {
+    int score;
+    std::string aligned_seq1;
+    std::string aligned_seq2;
+};
 
 /**
  * @brief Creates the Smith-Waterman scoring matrix on CPU.
@@ -17,9 +23,9 @@
  * 1)
  * @return 1D vector containing the scoring matrix in row-major order
  */
-std::vector<int>
-cpu_sw_create_scoring_matrix(const std::string &seq1, const std::string &seq2,
-                             int match_score, int mismatch_score,
-                             int gap_penalty, int rows, int cols);
 
-#endif // CPU_SW_CREATE_SCORING_MATRIX_H_
+SWResult cpu_smith_waterman(const std::string &seq1, const std::string &seq2,
+                            int match_score, int mismatch_score,
+                            int gap_penalty);
+
+#endif // CPU_SMITH_WATERMAN_H_
