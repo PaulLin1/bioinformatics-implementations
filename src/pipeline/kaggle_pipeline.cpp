@@ -54,47 +54,47 @@ std::map<int, std::vector<std::string>> create_class_to_sequences(const std::str
     return class_to_sequences;
 }
 
-std::map<int, float> detect_homology_gpu(
-    const std::vector<std::string>& query_chunks,
-    const std::vector<std::string>& db_chunks,
-    const std::vector<int>& db_labels,
-    const std::string& algorithm,
-    int match_score, int mismatch_penalty, int gap_penalty) {
+// std::map<int, float> detect_homology_gpu(
+//     const std::vector<std::string>& query_chunks,
+//     const std::vector<std::string>& db_chunks,
+//     const std::vector<int>& db_labels,
+//     const std::string& algorithm,
+//     int match_score, int mismatch_penalty, int gap_penalty) {
 
-    std::map<int, float> class_to_score;
-    std::map<int, int> class_counts;
+//     std::map<int, float> class_to_score;
+//     std::map<int, int> class_counts;
 
-    const int n_streams = 4;
-    std::vector<cudaStream_t> streams(n_streams);
-    for (int i = 0; i < n_streams; ++i) cudaStreamCreate(&streams[i]);
+//     const int n_streams = 4;
+//     std::vector<cudaStream_t> streams(n_streams);
+//     for (int i = 0; i < n_streams; ++i) cudaStreamCreate(&streams[i]);
 
-    for (size_t i = 0; i < db_chunks.size(); ++i) {
-        int stream_id = i % n_streams;
+//     for (size_t i = 0; i < db_chunks.size(); ++i) {
+//         int stream_id = i % n_streams;
 
-        int result = 0;
-        if (algorithm == "Smith-Waterman") {
-            result = cuda_smith_waterman(query_chunks[0], db_chunks[i], match_score, mismatch_penalty, gap_penalty, streams[stream_id]).score;
-        } else if (algorithm == "Needleman-Wunsch") {
-            result = cuda_needleman_wunsch(query_chunks[0], db_chunks[i], match_score, mismatch_penalty, gap_penalty, streams[stream_id]).score;
-        } else if (algorithm == "Hamming-Distance") {
-            result = cuda_hamming_distance(query_chunks[0], db_chunks[i], streams[stream_id]);
-        }
+//         int result = 0;
+//         if (algorithm == "Smith-Waterman") {
+//             result = cuda_smith_waterman(query_chunks[0], db_chunks[i], match_score, mismatch_penalty, gap_penalty, streams[stream_id]).score;
+//         } else if (algorithm == "Needleman-Wunsch") {
+//             result = cuda_needleman_wunsch(query_chunks[0], db_chunks[i], match_score, mismatch_penalty, gap_penalty, streams[stream_id]).score;
+//         } else if (algorithm == "Hamming-Distance") {
+//             result = cuda_hamming_distance(query_chunks[0], db_chunks[i], streams[stream_id]);
+//         }
 
-        class_to_score[db_labels[i]] += result;
-        class_counts[db_labels[i]]++;
-    }
+//         class_to_score[db_labels[i]] += result;
+//         class_counts[db_labels[i]]++;
+//     }
 
-    for (auto& s : streams) cudaStreamSynchronize(s);
+//     for (auto& s : streams) cudaStreamSynchronize(s);
 
-    for (auto& [cls, score] : class_to_score) {
-        score /= static_cast<float>(class_counts[cls]);
-    }
+//     for (auto& [cls, score] : class_to_score) {
+//         score /= static_cast<float>(class_counts[cls]);
+//     }
 
-    // Destroy streams
-    for (auto& s : streams) cudaStreamDestroy(s);
+//     // Destroy streams
+//     for (auto& s : streams) cudaStreamDestroy(s);
 
-    return class_to_score;
-}
+//     return class_to_score;
+// }
 
 std::map<int, float> detect_homology(
     const std::string& query_sequence,

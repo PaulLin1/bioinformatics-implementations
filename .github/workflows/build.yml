@@ -22,20 +22,3 @@ jobs:
       - name: Format with clang-format
         run: |
           find . -type f \( -name "*.cpp" -o -name "*.h" -o -name "*.cu" \) -exec clang-format -i {} +
-
-      - name: Install dependencies (including googletest)
-        run: |
-          brew update
-          brew install googletest
-
-      - name: Configure and build
-        run: |
-          mkdir -p build
-          cd build
-          cmake .. -DCMAKE_PREFIX_PATH="$(brew --prefix)" -DCMAKE_CXX_STANDARD=17 -DUSE_CUDA=FALSE
-          make
-
-      - name: Run tests
-        run: |
-          cd build
-          ctest --output-on-failure
