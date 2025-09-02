@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.14)
 
-project(AlgorithmProject LANGUAGES CXX CUDA)
+project(AlgorithmProject LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -11,6 +11,8 @@ if(USE_CUDA)
     find_package(CUDAToolkit REQUIRED)
     add_compile_definitions(USE_CUDA=1)
     set(CMAKE_CUDA_ARCHITECTURES 90)
+    project(AlgorithmProject LANGUAGES CXX CUDA)
+
 endif()
 
 if(USE_CUDA)
