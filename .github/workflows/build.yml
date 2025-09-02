@@ -32,7 +32,7 @@ jobs:
         run: |
           mkdir -p build
           cd build
-          cmake .. -DCMAKE_PREFIX_PATH="$(brew --prefix)" -DCMAKE_CXX_STANDARD=17
+          cmake .. -DCMAKE_PREFIX_PATH="$(brew --prefix)" -DCMAKE_CXX_STANDARD=17 -DUSE_CUDA=FALSE
           make
 
       - name: Run tests
