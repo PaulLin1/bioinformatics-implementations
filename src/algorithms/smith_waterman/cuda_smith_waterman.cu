@@ -264,18 +264,18 @@ std::vector<SWResult> cuda_smith_waterman(
 }
 
 
-int main() {
-    std::string seq1 = "ACACACTA";
-    std::string seq2 = "AGCACACA";
-    std::vector<std::string> hi;
-    hi.push_back(seq_2);
+// int main() {
+//     std::string seq1 = "ACACACTA";
+//     std::string seq2 = "AGCACACA";
+//     std::vector<std::string> hi;
+//     hi.push_back(seq_2);
 
-    SWResult result = cuda_smith_waterman(seq1, hi, 2, -1, -1);
+//     SWResult result = cuda_smith_waterman(seq1, hi, 2, -1, -1);
 
-    std::cout << "Smith-Waterman result:\n";
-    std::cout << "Score: " << result.score << "\n";
-    std::cout << "Aligned seq1: " << result.aligned_seq1 << "\n";
-    std::cout << "Aligned seq2: " << result.aligned_seq2 << "\n";
+//     std::cout << "Smith-Waterman result:\n";
+//     std::cout << "Score: " << result.score << "\n";
+//     std::cout << "Aligned seq1: " << result.aligned_seq1 << "\n";
+//     std::cout << "Aligned seq2: " << result.aligned_seq2 << "\n";
 
-    return 0;
-}
+//     return 0;
+// }
