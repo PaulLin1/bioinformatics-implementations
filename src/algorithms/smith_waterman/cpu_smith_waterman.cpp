@@ -112,16 +112,3 @@ SWResult cpu_smith_waterman(const std::string &seq1, const std::string &seq2,
     // return {1, "a", "a"};
 }
 
-// int main() {
-//     std::string seq1 = "ACACACTA";
-//     std::string seq2 = "AGCACACA";
-
-//     SWResult result = smith_waterman(seq1, seq2, 2, -1, -1);
-
-//     std::cout << "Smith-Waterman result:\n";
-//     std::cout << "Score: " << result.score << "\n";
-//     std::cout << "Aligned seq1: " << result.aligned_seq1 << "\n";
-//     std::cout << "Aligned seq2: " << result.aligned_seq2 << "\n";
-
-//     return 0;
-// }
